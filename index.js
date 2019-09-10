@@ -3,37 +3,43 @@ const { readLine } = require('./console');
 
 app();
 
-function app () {
-    const files = getFiles(); 
-    console.log('Please, write your command!');
+function app() {
+    console.log('\nPlease, write your command!\n');
+    console.log(`exit\nshow\nimportant\nuser {username}\nsort {importance | user | date}\ndate {yyyy[-mm-dd]}\n`);
     readLine(processCommand);
 }
 
-function getFiles () {
+function getFiles() {
     const filePaths = getAllFilePathsWithExtension(process.cwd(), 'js');
     return filePaths.map(path => readFile(path));
 }
 
-function processCommand (command) {
-    reg = /user (.*)/i;
-    switch (command) {
-        case 'exit':
+function processCommand(command) {
+    regExit = /exit/i;
+    regShow = /show/i;
+    regImp = /important/i;
+    regUser = /user (.*)/i;
+    regSort = /sort (.*)/i;
+    regDate = /date (.*)/i;
+    array = getArray();
+    switch (true) {
+        case regExit.test(command):
             process.exit(0);
             break;
-        case 'show':
-            show();
+        case regShow.test(command):
+            show(array);
             break;
-        case 'important':
-            important ()
+        case regImp.test(command):
+            important(array)
             break;
-        case reg.exec(command)[0]:
-            user(reg.exec(command)[1]);
+        case regUser.test(command):
+            user(array, regUser.exec(command)[1]);
             break;
-        case 'sort {type}':
-            sort();
+        case regSort.test(command):
+            sort(array, regSort.exec(command)[1])
             break;
-        case 'date {date}':
-            date();
+        case regDate.test(command):
+            date(array, regDate.exec(command)[1])
             break;
         default:
             console.log('wrong command');
@@ -41,12 +47,12 @@ function processCommand (command) {
     }
 }
 
-function show (){
+function getArray() {
     const files = getFiles();
 
-    const regexpTODO = /TODO(.*)/ig;
+    const regexpTODO = /TODO\s?(.*)/ig;
     const regexpImp = /!/g;
-    const regexpForm = /TODO\s?(.*);\s?(.*);\s?(.*)/i;
+    const regexpForm = /TODO\s?:?\s?(.*);\s?(.*);\s?(.*)/i;
     let output;
     let imp;
     let name;
@@ -54,7 +60,7 @@ function show (){
     let comment;
     let filename;
     let delimeter = "  |  ";
-    let space = " "; 
+    let space = " ";
     let nameMax = 0;
     let dateMax = 0;
     let commentMax = 0;
@@ -62,345 +68,259 @@ function show (){
     let outputLength = 0;
     let strArray = [];
 
-    for(let i=0;i<files.length;i++){
+    for (let i = 0; i < files.length; i++) {
         filename = files[i][0];
-        if(filename.length > filenameMax)
+        if (filename.length > filenameMax)
             filenameMax = filename.length;
-        if(filenameMax > 15)
+        if (filenameMax > 15)
             filenameMax = 15;
-        while ((matches = regexpTODO.exec(files[i][1])) !== null){
-            if((result = regexpForm.exec(matches[0])) !== null){
+        while ((matches = regexpTODO.exec(files[i][1])) !== null) {
+            if ((result = regexpForm.exec(matches[0])) !== null) {
                 name = new String(result[1]);
                 date = new String(result[2]);
                 comment = new String(result[3]);
-                if(name.length > nameMax)
+                if (name.length > nameMax)
                     nameMax = name.length;
-                if(nameMax > 10)
-                    nameMax = 10;  
-                if(date.length > dateMax)
+                if (nameMax > 10)
+                    nameMax = 10;
+                if (date.length > dateMax)
                     dateMax = date.length;
-                if(dateMax > 10)
+                if (dateMax > 10)
                     dateMax = 10;
-                if(comment.length > commentMax)
+                if (comment.length > commentMax)
                     commentMax = comment.length;
-                if(commentMax > 50)
+                if (commentMax > 50)
                     commentMax = 50;
             }
         }
     }
 
-    console.log(nameMax, dateMax, commentMax, filenameMax);
-
-    for(let i=0;i<files.length;i++){
+    for (let i = 0; i < files.length; i++) {
 
         filename = files[i][0];
 
-        while ((matches = regexpTODO.exec(files[i][1])) !== null){            
+        while ((matches = regexpTODO.exec(files[i][1])) !== null) {
 
-            if(regexpImp.test(matches[0])){
-                imp = " !";
-            } else{
-                imp = "  ";
+            if (regexpImp.test(matches[0])) {
+                imp = "  !";
+            } else {
+                imp = "   ";
             }
 
-            if((result = regexpForm.exec(matches[0])) !== null){
+            if ((result = regexpForm.exec(matches[0])) !== null) {
                 name = new String(result[1]);
                 date = new String(result[2]);
                 comment = new String(result[3]);
-            } else{
+            } else {
                 name = space.repeat(nameMax);
                 date = space.repeat(dateMax);
                 comment = new String(matches[1]);
             }
 
-            if(name.length > nameMax)
-            name = name.substring(0,7) + "...";     
-        
-            if(name.length < nameMax)
+            if (name.length > nameMax)
+                name = name.substring(0, 7) + "...";
+
+            if (name.length < nameMax)
                 name = name + space.repeat(nameMax - name.length);
-                    
-            if(date.length > dateMax)
-                date = date.substring(0,8) + "..."; 
 
-            if(date.length < dateMax)
+            if (date.length > dateMax)
+                date = date.substring(0, 8) + "...";
+
+            if (date.length < dateMax)
                 date = date + space.repeat(dateMax - date.length);
-            
-            if(comment.length > commentMax)
-                comment = comment.substring(0,47) + "..."; 
 
-            if(comment.length < commentMax)
+            if (comment.length > commentMax)
+                comment = comment.substring(0, 47) + "...";
+
+            if (comment.length < commentMax)
                 comment = comment + space.repeat(commentMax - comment.length);
-            
-            output = imp + delimeter + name + delimeter + date + delimeter + comment + delimeter + filename;
 
-            if(output.length > outputLength)
-                outputLength = output.length;
+            output = { imp: imp, name: name, date: date, comment: comment, filename: filename };
 
-            strArray.push(output);                       
+            if ((output.imp + delimeter + output.name + delimeter + output.date + delimeter + output.comment + delimeter + output.filename).length > outputLength)
+                outputLength = (output.imp + delimeter + output.name + delimeter + output.date + delimeter + output.comment + delimeter + output.filename).length;
+
+            strArray.push(output);
         }
     }
 
-    let userHead = 'user' + space.repeat(nameMax - 'user'.length);
-    let dateHead = 'date'+ space.repeat(dateMax - 'date'.length);
-    let commentHead = 'comment' + space.repeat(commentMax - 'comment'.length);
-    let filenameHead = 'fileName' + space.repeat(filenameMax - 'fileName');
-    
-    console.log(" !" + delimeter + userHead + delimeter + dateHead + delimeter + commentHead + delimeter + filenameHead);
-
-    console.log('-'.repeat(outputLength));
-
-    for(let i=0; i<strArray.length; i++){
-        console.log(strArray[i]);
-    }
-
-    console.log('-'.repeat(outputLength));
+    let array = { array: strArray, outputLength: outputLength };
+    return array;
 }
 
-
-//TODO реализовать сортировку и тд.
-
-
-function important (){
-    const files = getFiles();
-
-    const regexpTODO = /TODO(.*)/ig;
-    const regexpImp = /!/g;
-    const regexpForm = /TODO\s?(.*);\s?(.*);\s?(.*)/i;
-    let output;
-    let imp;
-    let name;
-    let date;
-    let comment;
-    let filename;
+function printHeader(array) {
     let delimeter = "  |  ";
-    let space = " "; 
-    let nameMax = 0;
-    let dateMax = 0;
-    let commentMax = 0;
-    let filenameMax = 0;
-    let outputLength = 0;
-    let strArray = [];
+    let space = ' ';
 
-    for(let i=0;i<files.length;i++){
-        filename = files[i][0];
-        if(filename.length > filenameMax)
-            filenameMax = filename.length;
-        if(filenameMax > 15)
-            filenameMax = 15;
-        while ((matches = regexpTODO.exec(files[i][1])) !== null){
-            if((result = regexpForm.exec(matches[0])) !== null){
-                name = new String(result[1]);
-                date = new String(result[2]);
-                comment = new String(result[3]);
-                if(name.length > nameMax)
-                    nameMax = name.length;
-                if(nameMax > 10)
-                    nameMax = 10;  
-                if(date.length > dateMax)
-                    dateMax = date.length;
-                if(dateMax > 10)
-                    dateMax = 10;
-                if(comment.length > commentMax)
-                    commentMax = comment.length;
-                if(commentMax > 50)
-                    commentMax = 50;
-            }
-        }
-    }
+    let userHead = 'user' + space.repeat(array[0].name.length - 'user'.length);
+    let dateHead = 'date' + space.repeat(array[0].date.length - 'date'.length);
+    let commentHead = 'comment' + space.repeat(array[0].comment.length - 'comment'.length);
+    let filenameHead = 'fileName' + space.repeat(array[0].filename.length - 'fileName'.length);
 
-    console.log(nameMax, dateMax, commentMax, filenameMax);
+    console.log("  !" + delimeter + userHead + delimeter + dateHead + delimeter + commentHead + delimeter + filenameHead);
+}
 
-    for(let i=0;i<files.length;i++){
-
-        filename = files[i][0];
-
-        while ((matches = regexpTODO.exec(files[i][1])) !== null){            
-
-            if(regexpImp.test(matches[0])){
-                imp = " !";            
-
-                if((result = regexpForm.exec(matches[0])) !== null){
-                    name = new String(result[1]);
-                    date = new String(result[2]);
-                    comment = new String(result[3]);
-                } else{
-                    name = space.repeat(nameMax);
-                    date = space.repeat(dateMax);
-                    comment = new String(matches[1]);
-                }
-
-                if(name.length > nameMax)
-                name = name.substring(0,7) + "...";     
-            
-                if(name.length < nameMax)
-                    name = name + space.repeat(nameMax - name.length);
-                        
-                if(date.length > dateMax)
-                    date = date.substring(0,8) + "..."; 
-
-                if(date.length < dateMax)
-                    date = date + space.repeat(dateMax - date.length);
-                
-                if(comment.length > commentMax)
-                    comment = comment.substring(0,47) + "..."; 
-
-                if(comment.length < commentMax)
-                    comment = comment + space.repeat(commentMax - comment.length);
-                
-                output = imp + delimeter + name + delimeter + date + delimeter + comment + delimeter + filename;
-
-                if(output.length > outputLength)
-                    outputLength = output.length;
-
-                strArray.push(output);  
-            }                     
-        }
-    }
-
-    let userHead = 'user' + space.repeat(nameMax - 'user'.length);
-    let dateHead = 'date'+ space.repeat(dateMax - 'date'.length);
-    let commentHead = 'comment' + space.repeat(commentMax - 'comment'.length);
-    let filenameHead = 'fileName' + space.repeat(filenameMax - 'fileName');
-
-    console.log(" !" + delimeter + userHead + delimeter + dateHead + delimeter + commentHead + delimeter + filenameHead);
-
-    console.log('-'.repeat(outputLength));
-
-    for(let i=0; i<strArray.length; i++){
-        console.log(strArray[i]);
-    }
-
+function printLine(outputLength) {
     console.log('-'.repeat(outputLength));
 }
 
-function user (username){
-    const files = getFiles();
+function printArray(array, outputLength, type) {
 
-    const regexpTODO = /TODO(.*)/ig;
-    const regexpImp = /!/g;
-    const regexpForm = /TODO\s?(.*);\s?(.*);\s?(.*)/i;
-    const regexpName = new RegExp(username, 'i');
-    const regexpPartName = new RegExp('^' + username.substr(0, 2) + '.*', 'i');    
-    // const regexpPartName = new RegExp('asd', 'i'); 
-    let output;
-    let imp;
-    let name;
-    let date;
-    let comment;
-    let filename;
     let delimeter = "  |  ";
-    let space = " "; 
-    let nameMax = 0;
-    let dateMax = 0;
-    let commentMax = 0;
-    let filenameMax = 0;
-    let outputLength = 0;
-    let strArray = [];
 
-    for(let i=0;i<files.length;i++){
-        filename = files[i][0];
-        if(filename.length > filenameMax)
-            filenameMax = filename.length;
-        if(filenameMax > 15)
-            filenameMax = 15;
-        while ((matches = regexpTODO.exec(files[i][1])) !== null){
-            if((result = regexpForm.exec(matches[0])) !== null){
-                if((regexpName.test(result[1])) || (regexpPartName.test(result[1]))){
-                    name = new String(result[1]);
-                    date = new String(result[2]);
-                    comment = new String(result[3]);
-                    if(name.length > nameMax)
-                        nameMax = name.length;
-                    if(nameMax > 10)
-                        nameMax = 10;  
-                    if(date.length > dateMax)
-                        dateMax = date.length;
-                    if(dateMax > 10)
-                        dateMax = 10;
-                    if(comment.length > commentMax)
-                        commentMax = comment.length;
-                    if(commentMax > 50)
-                        commentMax = 50;
-                }
+    switch (type.type) {
+        case 'important':
+            printHeader(array);
+            printLine(outputLength);
+            for (let i = 0; i < array.length; i++) {
+                if (type.reg.test(array[i].imp))
+                    console.log((array[i].imp + delimeter + array[i].name + delimeter + array[i].date + delimeter + array[i].comment + delimeter + array[i].filename));
             }
-        }
-    }
-
-    console.log(regexpPartName);
-    console.log(nameMax, dateMax, commentMax, filenameMax);
-
-    for(let i=0;i<files.length;i++){
-
-        filename = files[i][0];
-
-        while ((matches = regexpTODO.exec(files[i][1])) !== null){            
-
-            if(regexpImp.test(matches[0])){
-                imp = " !";
-            } else{
-                imp = "  ";
+            printLine(outputLength);
+            break;
+        case 'user':
+            printHeader(array);
+            printLine(outputLength);
+            for (let i = 0; i < array.length; i++) {
+                if (type.reg.test(array[i].name))
+                    console.log((array[i].imp + delimeter + array[i].name + delimeter + array[i].date + delimeter + array[i].comment + delimeter + array[i].filename));
             }
-
-            if((result = regexpForm.exec(matches[0])) !== null){
-                if((regexpName.test(result[1])) || (regexpPartName.test(result[1]))){
-                    name = new String(result[1]);
-                    date = new String(result[2]);
-                    comment = new String(result[3]);
-
-                    if(name.length > nameMax)
-                    name = name.substring(0,7) + "...";     
-                
-                    if(name.length < nameMax)
-                        name = name + space.repeat(nameMax - name.length);
-                            
-                    if(date.length > dateMax)
-                        date = date.substring(0,8) + "..."; 
-
-                    if(date.length < dateMax)
-                        date = date + space.repeat(dateMax - date.length);
-                    
-                    if(comment.length > commentMax)
-                        comment = comment.substring(0,47) + "..."; 
-
-                    if(comment.length < commentMax)
-                        comment = comment + space.repeat(commentMax - comment.length);
-                    
-                    output = imp + delimeter + name + delimeter + date + delimeter + comment + delimeter + filename;
-
-                    if(output.length > outputLength)
-                        outputLength = output.length;
-
-                    strArray.push(output);    
-                }
-            }                   
-        }
+            printLine(outputLength);
+            break;
+        case 'date':
+            printHeader(array);
+            printLine(outputLength);
+            for (let i = 0; i < array.length; i++) {
+                let dateA = new Date(array[i].date), dateB = new Date(type.reg);
+                if (dateA >= dateB)
+                    console.log((array[i].imp + delimeter + array[i].name + delimeter + array[i].date + delimeter + array[i].comment + delimeter + array[i].filename));
+            }
+            printLine(outputLength);
+            break;
+        default:
+            printHeader(array);
+            printLine(outputLength);
+            for (let i = 0; i < array.length; i++) {
+                console.log((array[i].imp + delimeter + array[i].name + delimeter + array[i].date + delimeter + array[i].comment + delimeter + array[i].filename));
+            }
+            printLine(outputLength)
+            break;
     }
-
-    let userHead = 'user' + space.repeat(nameMax - 'user'.length);
-    let dateHead = 'date'+ space.repeat(dateMax - 'date'.length);
-    let commentHead = 'comment' + space.repeat(commentMax - 'comment'.length);
-    let filenameHead = 'fileName' + space.repeat(filenameMax - 'fileName');
-    
-    console.log(" !" + delimeter + userHead + delimeter + dateHead + delimeter + commentHead + delimeter + filenameHead);
-
-    console.log('-'.repeat(outputLength));
-
-    for(let i=0; i<strArray.length; i++){
-        console.log(strArray[i]);
-    }
-
-    console.log('-'.repeat(outputLength));
-}                
-               
-
-function sort (type){
-    console.log('sort');
-
 }
 
-function date (date){
-    console.log('date');
 
+function show(array) {
+    printArray(array.array, array.outputLength, '');
+}
+
+
+function important(array) {
+    let type = { type: 'important', reg: /!/ };
+
+    printArray(array.array, array.outputLength, type);
+}
+
+
+function user(array, username) {
+    let type = { type: 'user', reg: new RegExp('^' + username, 'i') };
+
+    printArray(array.array, array.outputLength, type);
+}
+
+
+function sort(array, type) {
+    let space = ' ';
+    let buf;
+
+    switch (type) {
+        case 'importance':
+            k = 0;
+
+            const regexpImp = /!/g;
+
+            for (let i = 0; i < array.array.length; i++)
+                if (regexpImp.test(array.array[i].imp)) {
+                    buf = array.array[i];
+                    array.array[i] = array.array[k];
+                    array.array[k] = buf;
+                    k = k + 1;
+                }
+
+            for (let i = 0; i < k; ++i)
+                for (let j = 0; j < k - i; j++)
+                    if (array.array[j].comment.split("!").length - 1 < array.array[j + 1].comment.split("!").length - 1) {
+                        buf = array.array[j];
+                        array.array[j] = array.array[j + 1];
+                        array.array[j + 1] = buf;
+                    }
+            break;
+        case 'user':
+            k = 0;
+
+            array.array.sort(function (a, b) {
+                let nameA = a.name.toLowerCase(), nameB = b.name.toLowerCase()
+                if (nameA < nameB)
+                    return -1
+                if (nameA > nameB)
+                    return 1
+                return 0
+            })
+
+            for (let i = 0; i < array.array.length; i++)
+                if (array.array[i].name !== space.repeat(array.array[0].name.length)) {
+                    buf = array.array[i];
+                    array.array[i] = array.array[k];
+                    array.array[k] = buf;
+                    k = k + 1;
+                }
+
+            break;
+        case 'date':
+            k = 0;
+
+            array.array.sort(function (a, b) {
+                let dateA = new Date(a.date), dateB = new Date(b.date)
+                return dateB - dateA
+            });
+
+            for (let i = 0; i < array.array.length; i++)
+                if (array.array[i].date !== space.repeat(array.array[i].date.length)) {
+                    buf = array.array[i];
+                    array.array[i] = array.array[k];
+                    array.array[k] = buf;
+                    k = k + 1;
+                }
+
+            break
+        default:
+            console.log('wrong type of sort');
+            break;
+    }
+
+    printArray(array.array, array.outputLength, '');
+}
+
+
+function date(array, date) {
+    let type = { type: 'date', reg: date };
+    let space = ' ';
+    let buf;
+    let k = 0;
+
+    array.array.sort(function (a, b) {
+        let dateA = new Date(a.date), dateB = new Date(b.date)
+        return dateB - dateA
+    });
+
+    for (let i = 0; i < array.array.length; i++)
+        if (array.array[i].date !== space.repeat(array.array[0].date.length)) {
+            buf = array.array[i];
+            array.array[i] = array.array[k];
+            array.array[k] = buf;
+            k = k + 1;
+        }
+
+    printArray(array.array, array.outputLength, type);
 }
 
 // TODO you can do it!
