@@ -4,8 +4,8 @@ const { readLine } = require('./console');
 app();
 
 function app() {
-    console.log('\nPlease, write your command!\n');
-    console.log(`exit\nshow\nimportant\nuser {username}\nsort {importance | user | date}\ndate {yyyy[-mm-dd]}\n`);
+    console.log('Please, write your command!');
+    // console.log(`exit\nshow\nimportant\nuser {username}\nsort {importance | user | date}\ndate {yyyy[-mm-dd]}\n`);
     readLine(processCommand);
 }
 
@@ -51,7 +51,7 @@ function getArray() {
     const files = getFiles();
 
     const regexpTODO = /TODO\s?(.*)/ig;
-    const regexpImp = /!/g;
+    const regexpImp = /!/;
     const regexpForm = /TODO\s?:?\s?(.*);\s?(.*);\s?(.*)/i;
     let output;
     let imp;
@@ -99,8 +99,7 @@ function getArray() {
 
         filename = files[i][0];
 
-        while ((matches = regexpTODO.exec(files[i][1])) !== null) {
-
+        while ((matches = regexpTODO.exec(files[i][1])) !== null) {           
             if (regexpImp.test(matches[0])) {
                 imp = "  !";
             } else {
@@ -236,7 +235,7 @@ function sort(array, type) {
         case 'importance':
             k = 0;
 
-            const regexpImp = /!/g;
+            const regexpImp = /!/;
 
             for (let i = 0; i < array.array.length; i++)
                 if (regexpImp.test(array.array[i].imp)) {
