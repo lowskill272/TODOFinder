@@ -97,7 +97,7 @@ function getArray() {
 
     for (let i = 0; i < files.length; i++) {
 
-        filename = files[i][0];
+        filename = files[i][0] + "  ";
 
         while ((matches = regexpTODO.exec(files[i][1])) !== null) {           
             if (regexpImp.test(matches[0])) {
@@ -177,6 +177,7 @@ function printArray(array, outputLength, type) {
             }
             printLine(outputLength);
             break;
+
         case 'user':
             printHeader(array);
             printLine(outputLength);
@@ -186,6 +187,7 @@ function printArray(array, outputLength, type) {
             }
             printLine(outputLength);
             break;
+
         case 'date':
             printHeader(array);
             printLine(outputLength);
@@ -196,6 +198,7 @@ function printArray(array, outputLength, type) {
             }
             printLine(outputLength);
             break;
+
         default:
             printHeader(array);
             printLine(outputLength);
